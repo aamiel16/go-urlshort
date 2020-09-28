@@ -1,3 +1,3 @@
-module github.com/aamiel16/urlshortener
+module github.com/aamiel16/go-urlshortener
 
 go 1.14
