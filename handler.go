@@ -8,7 +8,7 @@ import (
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	//	TODO: Implement this...
 	fmt.Println("Mapping")
-	return func (w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// If request.path is in map
 		// Redirect
 		path := r.URL.Path

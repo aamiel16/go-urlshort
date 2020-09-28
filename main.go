@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aamiel16/go-urlshortener"
+	"github.com/aamiel16/go-urlshortener/urlshort"
 )
 
 func main() {
