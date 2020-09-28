@@ -1,44 +1,64 @@
 package urlshort
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
-	//	TODO: Implement this...
-	fmt.Println("Mapping")
 	return func(w http.ResponseWriter, r *http.Request) {
-		// If request.path is in map
-		// Redirect
 		path := r.URL.Path
 		if redirectUrl, ok := pathsToUrls[path]; ok {
-			// Redirect
+			log.Println("Redirecting to", redirectUrl)
+
+			// Let's set a cache control header
+			// Normally 301 (Moved Permanently) are cached by browsers
+			// Could use 302 (Found) as alternative to setting cache control
+			w.Header().Set("Cache-Control", "private, max-age=30")
 			http.Redirect(w, r, redirectUrl, 301)
 			return
 		}
-
 		fallback.ServeHTTP(w, r)
 	}
 }
 
-// YAMLHandler will parse the provided YAML and then return
-// an http.HandlerFunc (which also implements http.Handler)
-// that will attempt to map any paths to their corresponding
-// URL. If the path is not provided in the YAML, then the
-// fallback ttp.Handler will be called instead.
-//
-// YAML is expected to be in the format:
-//
-//     - path: /some-path
-//       url: https://www.some-url.com/demo
-//
-// The only errors that can be returned all related to having
-// invalid YAML data.
-//
-// See MapHandler to create a similar http.HandlerFunc via
-// a mapping of paths to urls.
-func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	// TODO: Implement this...
-	return nil, nil
+func YAMLHandler(filename string, fallback http.Handler) (http.HandlerFunc, error) {
+	// Read the YAML mapping
+	mapPath, err := readYAML(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return handler
+	return MapHandler(mapPath, fallback), nil
+}
+
+func readYAML(filename string) (map[string]string, error) {
+	// Open yaml file
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("Error in opening file: ", err)
+	}
+	defer file.Close()
+
+	// Create a yaml decoder from *File (File is a Reader since it implements Read)
+	decoder := yaml.NewDecoder(file)
+
+	// Decode
+	var decoded []map[string]string
+	err = decoder.Decode(&decoded)
+	if err != nil {
+		return nil, err
+	}
+
+	// Process to be a key-value pair / map
+	result := make(map[string]string)
+	for _, mapping := range decoded {
+		result[mapping["path"]] = mapping["url"]
+	}
+
+	return result, nil
 }
