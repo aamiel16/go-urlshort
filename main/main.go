@@ -11,14 +11,15 @@ import (
 func main() {
 	mux := defaultMux()
 
-	yamlHandler, err := urlshort.YAMLHandler("./mapping.yml", mux)
+	handler, err := urlshort.RedirectHandler("./mapping.json", mux)
+	// handler, err := urlshort.YAMLHandler("./mapping.yml", mux)
 	if err != nil {
 		panic(err)
 	}
 
 	const PORT = 8080
 	fmt.Println("Server started. Listening on port", PORT)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), yamlHandler))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", PORT), handler))
 }
 
 func defaultMux() *http.ServeMux {
